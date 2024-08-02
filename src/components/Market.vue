@@ -14,12 +14,17 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="w-full grid grid-cols-3">
+  <div class="w-full">
+    <div class="w-full relative h-[500px]">
+      <StockChart :stocks="stocks" />
+    </div>
 
-    <div class="p-4" v-for="stock in stocks" :key="stock.ticker">
-      <h1 class="text-xl font-bold text-center my-2">{{ stock.ticker }}</h1>
-      <StockChart :stock="stock" />
-      <PriceTable :stock="stock" />
+    <div class="grid grid-cols-3">
+      <div class="p-4 w-full" v-for="stock in stocks" :key="stock.ticker">
+          <h1 class="text-xl font-bold text-center my-2">{{ stock.ticker }}</h1>
+        <StockChart class="h-[300px]" :stocks="[stock]" />
+        <PriceTable :stock="stock" />
+      </div>
     </div>
 
   </div>

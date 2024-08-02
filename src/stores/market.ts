@@ -15,6 +15,7 @@ export interface Stock {
   ticker: string
   price: number
   priceRecords: PriceRecord[]
+  color: string
 }
 
 export const useMarketStore = defineStore('market', () => {
@@ -23,9 +24,9 @@ export const useMarketStore = defineStore('market', () => {
 
   function seedStocks() {
     stocks.value = [
-      { ticker: 'AAPL', price: 100, priceRecords: [] },
-      { ticker: 'GOOG', price: 200, priceRecords: [] },
-      { ticker: 'MSFT', price: 300, priceRecords: [] },
+      { ticker: 'AAPL', price: 100, priceRecords: [], color: 'rgba(255, 0, 0, 1)' },
+      { ticker: 'GOOG', price: 200, priceRecords: [], color: 'rgba(50, 255, 0, 1)' },
+      { ticker: 'MSFT', price: 300, priceRecords: [], color: 'rgba(0, 0, 255, 1)' },
     ]
 
     // run a loop representing once a minute for the last 10 minutes

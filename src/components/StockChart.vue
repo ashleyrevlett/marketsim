@@ -9,23 +9,31 @@ import { useMarketStore } from '../stores/market';
 const marketStore = useMarketStore();
 
 const props = defineProps({
-  stock: {
-    type: Object as PropType<Stock>,
+  stocks: {
+    type: Array as PropType<Stock[]>,
     required: true
   }
 });
 
+
+const labels = computed(() => marketStore.getPriceRecords(props.stocks[0]?.ticker).map(record => formatDate(record.datetime)));
+const datasets = computed(() => props.stocks.map(stock => ({
+  label: stock.ticker,
+  data: marketStore.getPriceRecords(stock.ticker).map(record => record.price),
+  borderColor: stock.color,
+  borderWidth: 1
+})));
+
 const priceChartElement = ref<HTMLCanvasElement | null>(null);
-const mostRecentPastPrices = computed(() => marketStore.getPriceRecords(props.stock.ticker));
-const price = computed(() => props.stock.price);
 
 function updateChart(priceChart: Chart) {
-  if (priceChart && mostRecentPastPrices.value) {
-    priceChart.data.datasets[0].data = mostRecentPastPrices.value.map((record) => record.price)
-    priceChart.data.labels = mostRecentPastPrices.value.map((record) => formatDate(record.datetime) )
+  if (priceChart && datasets.value) {
+    priceChart.data.datasets = datasets.value
+    priceChart.data.labels = labels.value
     priceChart.update()
   }
 }
+
 
 onMounted(() => {
   const ctx = priceChartElement.value;
@@ -33,17 +41,11 @@ onMounted(() => {
     console.error("No canvas element found");
     return;
   }
-
   const priceChart = new Chart(ctx, {
     type: 'line',
     data: {
-      labels: props.stock.priceRecords.slice(-10).map(record => new Date(record.datetime).toLocaleString("sv-SE")),
-      datasets: [{
-        label: 'Price',
-        data: props.stock.priceRecords.slice(-10).map(record => record.price),
-        borderColor: 'rgba(75, 192, 192, 1)',
-        borderWidth: 1
-      }]
+      labels: labels.value,
+      datasets: datasets.value
     },
     options: {
       scales: {
@@ -70,7 +72,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="stock-chart p-4 border border-gray-200">
-    <canvas width="200" height="200" ref="priceChartElement"></canvas>
+  <div class="stock-chart p-4 border border-gray-200 h-full w-full">
+    <canvas ref="priceChartElement"></canvas>
   </div>
 </template>
