@@ -3,14 +3,13 @@ import { defineStore } from 'pinia'
 
 const MAX_PRICE = 10
 const MIN_PRICE = 1
+const STEP_TIME = 1000 // ms
 
-// define the type for a price record
 export interface PriceRecord {
   price: number,
   datetime: Date
 }
 
-// define the type for a stock
 export interface Stock {
   ticker: string
   price: number
@@ -21,6 +20,26 @@ export interface Stock {
 export const useMarketStore = defineStore('market', () => {
 
   const stocks = ref<Stock[]>([])
+
+  // on a regular interval, randomize the price of each stock
+  function tickStocks(priceDatetime: Date | null) {
+    const volatility = .8; // Adjust this value to control price fluctuations
+    const dt = STEP_TIME / 1000; // Time step (1 second)
+
+    stocks.value.forEach(stock => {
+      const randomFactor = Math.random() - 0.5; // Random number between -0.5 and 0.5
+      const change = stock.price * volatility * randomFactor * Math.sqrt(dt);
+
+      let newPrice = stock.price + change;
+      newPrice = Math.max(MIN_PRICE, Math.min(MAX_PRICE, newPrice));
+      stock.price = Number(newPrice.toFixed(2)); // Round to 2 decimal places
+      stock.price = newPrice
+      stock.priceRecords.push({
+        price: newPrice,
+        datetime: priceDatetime ? priceDatetime : new Date()
+      })
+    })
+  }
 
   function seedStocks() {
     stocks.value = [
@@ -34,33 +53,15 @@ export const useMarketStore = defineStore('market', () => {
     for (let i = 0; i < 10; i++) {
       const priceDatetime = new Date(Date.now() - i * 60000);
       priceDatetime.setMilliseconds(0); // Set milliseconds to 0
-      stocks.value.forEach(stock => {
-        stock.price = Math.random() * (MAX_PRICE - MIN_PRICE) + MIN_PRICE
-
-        stock.priceRecords.push({
-          price: stock.price,
-          datetime: priceDatetime
-        })
-      })
+      tickStocks(priceDatetime)
     }
 
     // start an interval to randomize the price of each stock
     setInterval(() => {
-      tickStocks()
-    }, 2000)
+      tickStocks(null)
+    }, STEP_TIME)
   }
 
-  // on a regular interval, randomize the price of each stock
-  function tickStocks() {
-    stocks.value.forEach(stock => {
-      const stockPrice = Math.random() * (MAX_PRICE - MIN_PRICE) + MIN_PRICE
-      stock.price = stockPrice
-      stock.priceRecords.push({
-        price: stockPrice,
-        datetime: new Date()
-      })
-    })
-  }
 
   function getStock(ticker: string): Stock | undefined {
     return stocks.value.find(stock => stock.ticker === ticker)
