@@ -3,6 +3,10 @@ import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { Chart } from 'chart.js/auto';
 import type { PropType } from 'vue';
 import type { Stock } from '../stores/market';
+import { formatDate } from '../utils/utils';
+import { useMarketStore } from '../stores/market';
+
+const marketStore = useMarketStore();
 
 const props = defineProps({
   stock: {
@@ -12,12 +16,8 @@ const props = defineProps({
 });
 
 const priceChartElement = ref<HTMLCanvasElement | null>(null);
-const mostRecentPastPrices = computed(() => props.stock.priceRecords.slice(-10));
+const mostRecentPastPrices = computed(() => marketStore.getPriceRecords(props.stock.ticker));
 const price = computed(() => props.stock.price);
-
-function formatDate(time: Date): string {
-  return time.toLocaleString("sv-SE")
-}
 
 function updateChart(priceChart: Chart) {
   if (priceChart && mostRecentPastPrices.value) {
@@ -71,27 +71,6 @@ onMounted(() => {
 
 <template>
   <div class="stock-chart p-4 border border-gray-200">
-
-    <h1 class="text-xl font-bold text-center my-2">{{ props.stock.ticker }}</h1>
-
     <canvas width="200" height="200" ref="priceChartElement"></canvas>
-
-    <p class="my-2 text-center">Current Price: <strong>${{ price?.toFixed(2) }}</strong></p>
-
-    <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-      <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-        <tr>
-          <th width="w-1/2">Time</th>
-          <th>Price</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="pastPrice in mostRecentPastPrices">
-          <td class="p-2">{{ formatDate(pastPrice.datetime) }}</td>
-          <td class="p-2">{{ pastPrice.price.toFixed(2) }}</td>
-        </tr>
-      </tbody>
-    </table>
   </div>
 </template>
-

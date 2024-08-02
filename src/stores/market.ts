@@ -59,12 +59,16 @@ export const useMarketStore = defineStore('market', () => {
         datetime: new Date()
       })
     })
-    console.log(stocks.value)
   }
 
   function getStock(ticker: string): Stock | undefined {
     return stocks.value.find(stock => stock.ticker === ticker)
   }
 
-  return { stocks, seedStocks, getStock }
+  function getPriceRecords(ticker: string): PriceRecord[] {
+    const stock = getStock(ticker)
+    return stock ? stock.priceRecords.slice(-10) : []
+  }
+
+  return { stocks, seedStocks, getStock, getPriceRecords }
 })
